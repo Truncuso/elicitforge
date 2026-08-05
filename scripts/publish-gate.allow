@@ -1,0 +1,9 @@
+# Explicit, reviewed exemptions for publish-gate.sh.
+#
+# Format:  <path><TAB><class><TAB><reason>
+#
+# Every applied exemption is printed on each run, and an entry that matches no
+# finding fails the gate — so an exemption can neither be silent nor outlive the
+# thing it excuses.
+
+LICENSE	personal-string	MIT copyright holder — deliberate legal attribution by the repo owner, identical to their other public repositories; a copyright notice is published on purpose, not leaked
