@@ -39,6 +39,10 @@ while IFS= read -r link; do
     "$ADAPTER_DIR"/*) ;;
     *) fail "symlink escapes the plugin root: ${link#"$REPO_ROOT"/} -> $target" ;;
   esac
+  # A symlink that stays inside the plugin root but points at a path that does
+  # not exist is not "closure" either — it breaks at runtime just like an
+  # outward-pointing one, and readlink -m alone does not catch it.
+  [ -e "$target" ] || fail "symlink under the plugin root has a dangling target: ${link#"$REPO_ROOT"/} -> $target"
 done < <(find "$ADAPTER_DIR" -type l)
 
 # -- no drift -----------------------------------------------------------------
