@@ -1,0 +1,28 @@
+# Git Guardrails Configuration
+# Path: .claude/git-guardrails.yaml
+#
+# master-trunk exception: elicitforge is a single-maintainer OSS-style repo
+# with no PR workflow — main is the trunk, pushed to directly. Matches the
+# same documented exception used for the dotfiles repo (CLAUDE.md §Always-On
+# Digests → Git).
+
+# Blocked branches (space-separated) — pre-commit + pre-push
+blocked_branches:
+
+# Maximum file size in KB for staged files — pre-commit
+max_file_size_kb: 100
+
+# Conventional Commits allowed types — commit-msg
+allowed_types: feat fix refactor docs test chore perf ci
+
+# Maximum subject line length — commit-msg
+max_subject: 72
+
+# Types that require a body — commit-msg
+require_body_for: feat fix
+
+# Block force pushes — pre-push
+force_push_block: true
+
+# Shared-index guard — require explicit `-- <pathspec>` on git commit (pre-git-commit-enforce hook)
+shared_index_guard: true
