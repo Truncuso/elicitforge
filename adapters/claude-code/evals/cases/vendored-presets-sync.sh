@@ -8,12 +8,20 @@
 #     while resolving perfectly in a full source clone — a defect structurally
 #     invisible to any check run from the source tree.
 #
-#   no drift — closure is bought with a second copy of core/presets/*.md, so the
-#     copy must be a GENERATED artifact, not a fork. `core/` is the single source
-#     of truth; this case is what makes that true rather than aspirational.
+#   no drift — closure is bought with a second copy of every core file the front
+#     door points at (core/presets/*.md, core/engine.md,
+#     core/references/signals-contract.md), so each copy must be a GENERATED
+#     artifact, not a fork. `core/` is the single source of truth; this case is
+#     what makes that true rather than aspirational.
 #
-# Both assertions are guarded against vacuity: a plugin root with no files, or a
-# preset pair of two empty directories, fails instead of passing silently.
+# Symlink closure alone is not enough: a plugin root that merely contains no
+# outward symlink can still POINT — in prose the host reads — at content only
+# `core/` carries. Every vendored file below is content the runtime install must
+# be able to read at ${CLAUDE_PLUGIN_ROOT}.
+#
+# All assertions are guarded against vacuity: a plugin root with no files, a
+# preset pair of two empty directories, or an empty vendored file fails instead
+# of passing silently.
 
 ADAPTER_DIR="$1"
 REPO_ROOT="$(cd "$ADAPTER_DIR/../.." && pwd)"
@@ -59,5 +67,25 @@ if ! diff_out="$(diff -r "$CORE_PRESETS" "$VENDORED" 2>&1)"; then
   fail "vendored presets have drifted from core/presets:"
   printf '%s\n' "$diff_out" | sed 's/^/      /' >&2
 fi
+
+# -- no drift: the single vendored files the front door reads ------------------
+#
+# "<core-relative path>|<plugin-root-relative path>" — the engine and the signal
+# grammar are as load-bearing at runtime as the presets are.
+for pair in \
+  "engine.md|engine.md" \
+  "references/signals-contract.md|references/signals-contract.md"
+do
+  src="$REPO_ROOT/core/${pair%%|*}"
+  dst="$ADAPTER_DIR/${pair##*|}"
+  [ -f "$src" ] && [ -s "$src" ] \
+    || fail "core source is missing or empty: core/${pair%%|*}"
+  [ -f "$dst" ] && [ ! -L "$dst" ] && [ -s "$dst" ] \
+    || fail "vendored copy is missing, empty, or a symlink: ${pair##*|} (the runtime install would have nothing to read)"
+  if ! diff_out="$(diff "$src" "$dst" 2>&1)"; then
+    fail "vendored ${pair##*|} has drifted from core/${pair%%|*}:"
+    printf '%s\n' "$diff_out" | sed 's/^/      /' >&2
+  fi
+done
 
 case_exit

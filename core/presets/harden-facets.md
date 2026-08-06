@@ -8,7 +8,7 @@ output_contract: Emits RESOLVED_TERM (with optional RELATED) when a facet's term
 # harden-facets
 
 Declarative preset. Selects the `socratic` playbook from the engine's closed
-style enum (core/engine.md) — one question at a time with a recommended answer,
+style enum (../engine.md) — one question at a time with a recommended answer,
 dependencies resolved before dependents, concrete scenarios used to stress-test
 stated boundaries, and the predictive-confidence stop. Behavior is the engine's;
 this file only names the playbook, fidelity, framing, and signal contract.

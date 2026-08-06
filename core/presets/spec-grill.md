@@ -8,7 +8,7 @@ output_contract: Emits RESOLVED_TERM (with optional RELATED) whenever a glossary
 # spec-grill
 
 Declarative preset. Selects the `socratic` playbook from the engine's closed
-style enum (core/engine.md) — one question at a time with a recommended answer,
+style enum (../engine.md) — one question at a time with a recommended answer,
 opening confidence number, predictive-confidence stop, want-vs-should-want
 probing, glossary challenge, code cross-reference.
 

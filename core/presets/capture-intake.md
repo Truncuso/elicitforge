@@ -8,7 +8,7 @@ output_contract: Emits RESOLVED_TERM (with optional RELATED) for every fuzzy int
 # capture-intake
 
 Declarative preset. Selects the `rapid` playbook from the engine's closed style
-enum (core/engine.md) — breadth-first, closed or short-answer questions,
+enum (../engine.md) — breadth-first, closed or short-answer questions,
 recommended answers stated as defaults acceptable by silence, and the lowered
 stopping bar: stop once no branch is entirely unexplored. Nothing here forks the
 engine; the techniques, stop rule, and `unattended:` behavior are the engine's.

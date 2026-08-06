@@ -16,9 +16,11 @@ description: >-
 
 Public front door for the elicitforge interview engine on Claude Code. This
 file is an adapter: it resolves the caller's `preset:` argument onto a preset
-file and hands control to the engine. The engine's conduct rules and the
-signals contract live in `core/`, which is harness-agnostic and knows nothing
-about this address.
+file and hands control to the engine. The engine and its signals contract are
+authored in the harness-agnostic `core/` of the source repo, which knows
+nothing about this address; they are vendored into this plugin root as
+`engine.md` and `references/signals-contract.md` so a runtime install carries
+them.
 
 ## Argument
 
@@ -46,16 +48,19 @@ prefix the name with `core/`, do not drop the `.md` extension, and do not
 substitute a repo-relative path: the plugin is installed outside the source
 tree and only `${CLAUDE_PLUGIN_ROOT}` is a valid anchor at runtime.
 
-`presets/` is a real, committed directory at the plugin root, vendored from the
-harness-agnostic `core/presets/` in the source repo. It is a generated
-artifact: `core/` is the single source of truth and the only place a preset is
-edited, and an eval case (`evals/cases/vendored-presets-sync.sh`) fails the
-moment the two copies differ.
+`presets/`, `engine.md`, and `references/signals-contract.md` are real,
+committed files at the plugin root, vendored from `core/presets/`,
+`core/engine.md`, and `core/references/signals-contract.md` in the source repo.
+They are generated artifacts: `core/` is the single source of truth and the
+only place any of them is edited, and an eval case
+(`evals/cases/vendored-presets-sync.sh`) fails the moment a copy differs from
+its source.
 
-It is vendored rather than symlinked because the plugin root is installed on
+They are vendored rather than symlinked because the plugin root is installed on
 its own — the host materializes only `adapters/claude-code/`, so `core/` is
 never present at runtime and any path escaping this directory would dangle.
-Nothing under this plugin root resolves outside it.
+Nothing under this plugin root resolves outside it, and every file the front
+door points at is inside it.
 
 ## Unknown or missing preset
 
@@ -79,7 +84,10 @@ than proceeding without it.
 
 1. Resolve the preset (or note that none was requested).
 2. Read the preset's frontmatter — `style`, `fidelity`, `framing`,
-   `output_contract` — and the engine's conduct rules from `core/`.
+   `output_contract` — and the engine's conduct rules from
+   `${CLAUDE_PLUGIN_ROOT}/engine.md`. The signal grammar the
+   `output_contract` names is at
+   `${CLAUDE_PLUGIN_ROOT}/references/signals-contract.md`.
 3. Run the loop: one question at a time, each with a recommended answer and a
    confidence number, stopping on predictive confidence.
 4. Emit the signals the preset's `output_contract` declares. The engine writes
