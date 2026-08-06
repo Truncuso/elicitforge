@@ -4,9 +4,8 @@
 #   publish-gate.sh <repo>              scan <repo>; exit 0 clean, non-zero on any finding
 #   publish-gate.sh --self-test <repo>  prove the detector on a planted fixture, THEN scan <repo>
 #
-# Contract: base-system-map ticket-09 (`publish-gate`). What gets published is
-# not the working tree — it is every object a clone can reach. This scrub
-# therefore has five legs:
+# What gets published is not the working tree — it is every object a clone can
+# reach. This scrub therefore has five object legs:
 #
 #   tree          content of tracked + untracked-but-not-ignored files
 #   tree-path     those files' PATHS, against the private path-class denylist
@@ -17,6 +16,15 @@
 #
 # A tree-only scan is not sufficient: history is effectively immutable once a
 # clone exists, and rewriting it is only cheap BEFORE the first push.
+#
+# A sixth, non-object leg (`config`) checks the identity this repo would author
+# future commits with.
+#
+# Nothing is skipped silently. A file `grep -I` classifies as binary is not
+# passed over — its printable runs are extracted and scanned under a `-binary`
+# leg suffix — and a personal-string set that cannot be derived is a hard error
+# rather than a quietly-omitted leg: a scan that did not run must never report
+# CLEAN.
 #
 # Detection classes ship base64-encoded, for the same reason
 # core/evals/cases/purity/denylist.b64 does: stored as plain text, this script
@@ -29,12 +37,18 @@
 
 set -uo pipefail
 
-PATTERNS_B64='YWJzLWhvbWUtcGF0aAkoXnxbXls6YWxudW06XV8uLV0pL2hvbWUvW0EtWmEtejAtOS5fLV0rCmFicy11c2Vycy1wYXRoCShefFteWzphbG51bTpdXy4tXSkvVXNlcnMvW0EtWmEtejAtOS5fLV0rCmVtYWlsCVtBLVphLXowLTkuXyUrLV0rQFtBLVphLXowLTkuLV0rXC5bQS1aYS16XXsyLH0JQHVzZXJzXC5ub3JlcGx5XC5naXRodWJcLmNvbSQKc2VjcmV0CShBS0lBWzAtOUEtWl17MTZ9fGdoW3BvdXNyXV9bQS1aYS16MC05XXsyMCx9fHNrLVtBLVphLXowLTlfLV17MjAsfXx4b3hbYmFwcnNdLVtBLVphLXowLTktXXsxMCx9fC0tLS0tQkVHSU4gW0EtWiBdKlBSSVZBVEUgS0VZLS0tLS18KGFwaVtfLV0/a2V5fGFwaWtleXxzZWNyZXR8dG9rZW58cGFzc3dkfHBhc3N3b3JkKVsiJ10/W1s6c3BhY2U6XV0qWzo9XVtbOnNwYWNlOl1dKlsiJ10/W0EtWmEtejAtOS8rPV8tXXsyMCx9KQpzZXNzaW9uLWlkCVswLTlhLWZdezh9LVswLTlhLWZdezR9LVswLTlhLWZdezR9LVswLTlhLWZdezR9LVswLTlhLWZdezEyfQpzZGQtdGFzay1pZAkoXnxbXkEtWmEtejAtOV0pKHRhc2t8d3ApLVswLTldezJ9LVthLXowLTktXSsK'
+PATTERNS_B64='YWJzLWhvbWUtcGF0aAkoXnxbXls6YWxudW06XV8uLV0pL2hvbWUvW0EtWmEtejAtOS5fLV0rCS0JLQphYnMtdXNlcnMtcGF0aAkoXnxbXls6YWxudW06XV8uLV0pL1VzZXJzL1tBLVphLXowLTkuXy1dKwktCS0KZW1haWwJW0EtWmEtejAtOS5fJSstXStAW0EtWmEtejAtOS4tXStcLltBLVphLXpdezIsfQlAdXNlcnNcLm5vcmVwbHlcLmdpdGh1YlwuY29tJAktCnNlY3JldAkoQUtJQVswLTlBLVpdezE2fXxnaFtwb3Vzcl1fW0EtWmEtejAtOV17MjAsfXxzay1bQS1aYS16MC05Xy1dezIwLH18eG94W2JhcHJzXS1bQS1aYS16MC05LV17MTAsfXwtLS0tLUJFR0lOIFtBLVogXSpQUklWQVRFIEtFWS0tLS0tKQktCS0Kc2VjcmV0CShhcGlbXy1dP2tleXxhcGlrZXl8c2VjcmV0fHRva2VufHBhc3N3ZHxwYXNzd29yZClbIiddP1tbOnNwYWNlOl1dKls6PV1bWzpzcGFjZTpdXSpbIiddP1tBLVphLXowLTkvKz1fLV17MjAsfQktCWkKc2Vzc2lvbi1pZAlbMC05YS1mXXs4fS1bMC05YS1mXXs0fS1bMC05YS1mXXs0fS1bMC05YS1mXXs0fS1bMC05YS1mXXsxMn0JLQlpCnNkZC10YXNrLWlkCShefFteQS1aYS16MC05XSkoW1R0XWFza3xbV3ddW1BwXXxbVHRdaWNrZXQpLVswLTldezEsM30oW14wLTldfCQpCS0JLQo='
 
-# Self-test fixture: a tarball carrying one file with a planted absolute home
-# path, a planted address, and two planted key-shaped strings; one file under a
-# private path class; and the commit metadata to plant on the fixture commit.
-FIXTURE_B64='H4sIAAAAAAAAA+3W3YubQBAAcJ/9K5bry92D31/JQaCBJhDa3h39gLQvYaJjso2u4q5p8t9XL6aUlCMUasr15gdi2B1dcdbJmJbWO7sRRUF7dqLA/vV8pDmB6/lh6Eaeq9mOHQSRxoL+H03TaqmgYkyLa7HC6um4c/PPlGnlqKDfNdoEh6H/ZP492z3Jv+O7nsbsfh/r4IXnH2q1LqqFgBxHDxkIhQmb8p2qK2Tjxzm9C8EceDYqDzHmYfA17iAvMzS52ELGE13Wy28Yq1GKoK4VyI1hD43uGiM93PfmlnUjbM2lKqo9a/dgAgr0ZZHsRxKl5IW4ZXY6SCEJlkYyjJeGHw5TA5wwMCJ7EEaROxgGNur/+g0+b6bV5kL2+i/w5/XfCSOf6v8lHPNfVnwLCg1RKDTz5K+uca7+2/5p/febH1T/L+FYibv8P1ZmwcWKQaV4CrGi+vpfM60MYWOqnepvjbP9n+ecfP+u2wzR938Br372Yu0+YF2Lxq4lZqmhUComcAWKb5HFIPFGjwuR8tWiKgrFRsxaFzla3VW1xMoyDwEWlKXedIxCNQdWTWgXZJZYyUL81jnCd7nY4L4JHL+djWf3H6f3b+7uosl8/P7h3USHknfTV01TOZ3NP33+MOlu2ewXzw/CaDCEZZxgOv/y9YrKFiGEEEIIIYQQQgghhBBCXqofpyK9aAAoAAA='
+# Self-test fixture: a tarball of planted leaks plus the commit metadata to
+# plant on the fixture commit. The plants are deliberately NOT written to the
+# shape of the regexes below — a fixture fitted to its own detector proves only
+# that a string can be echoed back. They are the shapes real leaks take:
+# `API_KEY = "..."` and `Passwd:` in mixed case, a one-digit task id with no
+# trailing slug, a capitalized `WP-`, a `ticket-`, a macOS `/Users/` path, and a
+# key buried in a binary file that `grep -I` refuses to read. The personal-string
+# plant cannot be shipped in the tarball at all (the strings are machine-derived)
+# and is written into the fixture at build time by build_fixture.
+FIXTURE_B64='H4sIAJw2dGoC/+2YW0/bMBSAs+2tv8LaE0ikuTZtmSoNSrmMWxnswl6QE582obGd2U5Ledk/3+YEhgZ7QJNGYZs/KY1rW7GU9js+x4wrkI4EVRZNSqwHwdVEYVjfNXfvbtC+Gbvq99xWFFjItRZAKRUWennr/6SfcwYoUyhjiiMn5RQcAtNSgnBmXEz0F8oRZgSJkiGKJ9BsDDM2RpjgZs6nkOMEXsMFpkUOTS7GaJYCQyoFxLJxqvI5ymjBhUKxADyRzcbacOdsd3CKeujlJ9qdntLNub6i5ON7DzYG8/3LI+/gPAkPT9bTU7rfe9kYYilnZBX1uRCQKHubCwn2OlYKxNw+VlivbId+Ay7qdba2z4ZrJ71xWpy5nh+Erajd6eI4ITAap9n52np/Y7C5tb3zpmEZLFb7T3HC5aP57/3U/uG/5xr/F8EhQxjt46Q2NsGJ/sy17VLHA+S801FA3oSDvSwWWMydfjVL1oGhaRz6yyE8kY7gmFD8YAnAvf4H0V3/o9A3/i+C4zQrCiCV7rPCDtGSBEAfhrbnoxEXdVQY8TznM7sslpuN9ZwnEz2d6y0+0y1ld1HJVJbXM2k2FlhlerCOISY6PH0K/UtJh8GFsj+XWOiU6s9Hgfv8d8Pgjv++G5r9fyHotB8Ewzmq/ghMJ/YriMEUBCrKOM9kCsRI/C+jaytQ18lcnLFH2v9bv+z/UWj8XwRfBnublvXsedWOyywn+nXQwrKq8vlS0+20o1YY+J57VULv7u0fHA6P3h6fWNa3r7fPC4DGQAgQp8Aq1c98YfR68lBQ+KHXuM9/P/Jv+6/19yLj/0Lif6lSLs4YptDbgCmqSv7GdSdQnOU9bXez0vvmkI+BasgyPodE9UaA1VJVOCyv1jl/XQZcHfjp58SczHv9nEuQN+XCCpJlAUIC0Z11ofEK6XFZVQ0u9mI/CYgdQmtkR27bszt+N7BxGLeSiLShM+qadMRgMBgMBoPBYDAYDAaD4bf4Du/4wpEAKAAA'
 
 # Path classes that must never be published, whatever their content.
 PRIVATE_PATH_RE='(^|/)(plans|tmp)/|(^|/)\.memory/|(^|/)docs/handoffs/|\.conv\.md$'
@@ -68,7 +82,10 @@ emit() { # leg class path loc evidence
 
 # Fixed strings that identify the operator of this machine. Derived, not
 # configured, so the check cannot silently no-op on a machine that never
-# installed a private denylist file.
+# installed a private denylist file. Deriving NOTHING is a hard error at the
+# call site (see main) — on a machine with no global git identity this used to
+# reduce to an empty grep pattern file and the leg vanished from a run that
+# still printed CLEAN.
 personal_strings() {
   {
     git config --global user.name
@@ -79,32 +96,66 @@ personal_strings() {
 
 scan_file() { # leg path loc file
   local leg="$1" path="$2" loc="$3" file="$4"
-  grep -Iq . "$file" 2>/dev/null || return 0   # binary or empty: nothing to read
+  local target="$file"
 
-  local class pat allow lineno text hits hit nl
-  while IFS=$'\t' read -r class pat allow; do
+  # `grep -I` classifies a file with any NUL byte as binary and reports NOTHING
+  # for it — a leak inside a compiled artifact, an archive, or a stray core dump
+  # was previously invisible on every leg. Scan the printable runs instead, under
+  # a distinct `-binary` leg so the weaker read is visible in the report rather
+  # than passed off as a normal text scan. Line numbers on that leg index the
+  # extracted runs, not the bytes.
+  if ! grep -Iq '' "$file" 2>/dev/null; then
+    [ -s "$file" ] || return 0                 # genuinely empty: nothing to read
+    if command -v strings >/dev/null 2>&1; then
+      strings -n 8 "$file" > "$WORK/strings.txt" 2>/dev/null || : > "$WORK/strings.txt"
+    else
+      : > "$WORK/strings.txt"
+    fi
+    if [ ! -s "$WORK/strings.txt" ]; then
+      printf 'skipped-binary: %s (%s) — no printable runs could be extracted\n' \
+        "$path" "$loc" >&2
+      return 0
+    fi
+    leg="$leg-binary"
+    target="$WORK/strings.txt"
+  fi
+
+  # patterns.tsv columns: class, regex, allow-regex, flags — NEVER empty, '-'
+  # means "none". Tab is IFS whitespace, so `read` collapses a run of tabs into
+  # one delimiter and an empty column shifts every later column left by one;
+  # that silently reverted the case-insensitive rows to case-sensitive on the
+  # first write of this loop.
+  local class pat allow flags lineno text hits hit nl
+  local -a gopts
+  while IFS=$'\t' read -r class pat allow flags; do
     [ -n "${class:-}" ] || continue
+    [ "${allow:--}" = "-" ] && allow=""
+    # Per-row case sensitivity. Only rows whose KEYWORD is prose match -i;
+    # literal key shapes (AKIA…, gh?_…, the PEM header) stay exact, because for
+    # those the case IS the signal and -i would widen them into noise.
+    gopts=(-E)
+    case "${flags:-}" in *i*) gopts+=(-i) ;; esac
     while IFS= read -r nl; do
       lineno="${nl%%:*}"
       text="${nl#*:}"
       if [ -n "${allow:-}" ]; then
-        hits="$(printf '%s\n' "$text" | grep -oE "$pat" | grep -vE "$allow")"
+        hits="$(printf '%s\n' "$text" | grep -o "${gopts[@]}" -- "$pat" | grep -vE "$allow")"
       else
-        hits="$(printf '%s\n' "$text" | grep -oE "$pat")"
+        hits="$(printf '%s\n' "$text" | grep -o "${gopts[@]}" -- "$pat")"
       fi
       while IFS= read -r hit; do
         [ -n "$hit" ] || continue
         emit "$leg" "$class" "$path" "$loc:$lineno" "$hit"
       done <<< "$hits"
-    done < <(grep -nE "$pat" "$file" 2>/dev/null)
+    done < <(grep -n "${gopts[@]}" -- "$pat" "$target" 2>/dev/null)
   done < "$WORK/patterns.tsv"
 
-  if [ -s "$WORK/personal.txt" ]; then
-    while IFS= read -r nl; do
-      lineno="${nl%%:*}"
-      emit "$leg" "personal-string" "$path" "$loc:$lineno" "${nl#*:}"
-    done < <(grep -nFf "$WORK/personal.txt" "$file" 2>/dev/null)
-  fi
+  # personal.txt is guaranteed non-empty by main — an empty set is a hard error
+  # there, never a skipped leg here.
+  while IFS= read -r nl; do
+    lineno="${nl%%:*}"
+    emit "$leg" "personal-string" "$path" "$loc:$lineno" "${nl#*:}"
+  done < <(grep -nFf "$WORK/personal.txt" "$target" 2>/dev/null)
 }
 
 scan_path() { # leg path
@@ -132,24 +183,32 @@ scan_repo() { # repo  -> appends to $FINDINGS
   while IFS= read -r sha; do
     [ -n "$sha" ] || continue
     git -C "$repo" log -1 --format='%an%n%ae%n%cn%n%ce%n%s%n%b' "$sha" > "$WORK/meta.txt" </dev/null
-    scan_file "history-meta" "-" "commit:${sha:0:12}" "$WORK/meta.txt"
+    # The commit IS the object this finding lives in — naming it as the path
+    # keeps an exemption pinned to one immutable commit instead of to every
+    # commit message the repo will ever have.
+    scan_file "history-meta" "commit:${sha:0:12}" "commit:${sha:0:12}" "$WORK/meta.txt"
   done < <(git -C "$repo" log --all --format='%H' 2>/dev/null)
 
   # -- leg: history-path -----------------------------------------------------
+  # --diff-merges=first-parent: a merge commit shows NO diff by default, so a
+  # path introduced only by a merge (a conflict resolution, an -X ours/theirs
+  # take) never appeared in this leg's output while being perfectly reachable
+  # in the published tree.
   while IFS= read -r p; do
     scan_path "history-path" "$p"
-  done < <(git -C "$repo" log --all --name-only --format='' 2>/dev/null | sed '/^$/d' | sort -u)
+  done < <(git -C "$repo" log --all --name-only --format='' --diff-merges=first-parent 2>/dev/null \
+             | sed '/^$/d' | sort -u)
 
   # -- leg: history-blob -----------------------------------------------------
   # Every blob reachable from every ref — the bytes a clone actually receives.
   git -C "$repo" rev-list --objects --all 2>/dev/null \
     | git -C "$repo" cat-file --batch-check='%(objectname) %(objecttype) %(rest)' 2>/dev/null \
     > "$WORK/objects.txt"
-  : > "$WORK/seen.txt"
+  local -A seen=()
   while read -r sha type rest; do
     [ "$type" = "blob" ] || continue
-    grep -qxF "$sha" "$WORK/seen.txt" && continue
-    printf '%s\n' "$sha" >> "$WORK/seen.txt"
+    [ -n "${seen[$sha]:-}" ] && continue
+    seen[$sha]=1
     git -C "$repo" cat-file blob "$sha" > "$WORK/blob.bin" 2>/dev/null </dev/null || continue
     scan_file "history-blob" "${rest:--}" "blob:${sha:0:12}" "$WORK/blob.bin"
   done < "$WORK/objects.txt"
@@ -166,26 +225,33 @@ scan_repo() { # repo  -> appends to $FINDINGS
 
 # --------------------------------------------------------------- exemptions ---
 
-# publish-gate.allow: "<path><TAB><class><TAB><reason>", '#' comments.
+# publish-gate.allow: "<path><TAB><class><TAB><loc><TAB><reason>", '#' comments.
+# <loc> is `*` for any location, or a prefix of the finding's location — so an
+# exemption for content frozen in an already-published object (a commit message,
+# a v1.0.0 blob) can be pinned to that object alone and does NOT excuse the same
+# leak reappearing in the working tree.
 # Applied only to the real-repo scan; the fixture never carries one.
 apply_allow() { # repo
   local allow="$SCRIPT_DIR/publish-gate.allow"
   [ -r "$allow" ] || return 0
 
-  local apath aclass reason kept dropped rc=0
+  local apath aclass aloc reason kept dropped rc=0
   cp "$FINDINGS" "$WORK/remaining.txt"
 
-  while IFS=$'\t' read -r apath aclass reason; do
+  while IFS=$'\t' read -r apath aclass aloc reason; do
     case "${apath:-}" in ''|'#'*) continue ;; esac
-    dropped="$(awk -F'\t' -v p="$apath" -v c="$aclass" '$3==p && $2==c' "$WORK/remaining.txt")"
+    [ -n "${aloc:-}" ] || aloc='*'
+    dropped="$(awk -F'\t' -v p="$apath" -v c="$aclass" -v l="$aloc" \
+      '$3==p && $2==c && (l=="*" || index($4,l)==1)' "$WORK/remaining.txt")"
     if [ -z "$dropped" ]; then
-      echo "error: stale exemption in publish-gate.allow — [$apath / $aclass] matches nothing" >&2
+      echo "error: stale exemption in publish-gate.allow — [$apath / $aclass @ $aloc] matches nothing" >&2
       rc=1
       continue
     fi
-    printf 'exempt: %s / %s (%s) — %s finding(s)\n' \
-      "$apath" "$aclass" "$reason" "$(printf '%s\n' "$dropped" | wc -l)" >&2
-    kept="$(awk -F'\t' -v p="$apath" -v c="$aclass" '!($3==p && $2==c)' "$WORK/remaining.txt")"
+    printf 'exempt: %s / %s @ %s (%s) — %s finding(s)\n' \
+      "$apath" "$aclass" "$aloc" "$reason" "$(printf '%s\n' "$dropped" | wc -l)" >&2
+    kept="$(awk -F'\t' -v p="$apath" -v c="$aclass" -v l="$aloc" \
+      '!($3==p && $2==c && (l=="*" || index($4,l)==1))' "$WORK/remaining.txt")"
     printf '%s\n' "$kept" | sed '/^$/d' > "$WORK/remaining.txt"
   done < "$allow"
 
@@ -203,7 +269,9 @@ report() { # label
     return 0
   fi
   printf 'publish-gate: %s — %d finding(s)\n' "$1" "$n" >&2
-  awk -F'\t' '{printf "  [%s] %s  %s\n      %s\n", $2, $1, $4, $5}' "$FINDINGS" >&2
+  # Path AND location: an exemption is keyed on the path, so a report that
+  # only shows the location cannot be acted on without re-deriving it.
+  awk -F'\t' '{printf "  [%s] %s  %s  (%s)\n      %s\n", $2, $1, $3, $4, $5}' "$FINDINGS" >&2
   return 1
 }
 
@@ -221,7 +289,20 @@ build_fixture() { # dir
   body="$(sed -n 's/^body=//p' "$dir/meta")"
   rm -f "$dir/meta"
 
+  # The personal-string plant cannot ship in the tarball: the strings are
+  # derived from THIS machine. Plant them here so the leg is exercised on the
+  # same set the real scan will use.
+  mkdir -p "$dir/notes"
+  {
+    echo "handover notes — reachable contacts for this build:"
+    sed 's/^/  owner: /' "$WORK/personal.txt"
+  } > "$dir/notes/owner.txt"
+
   git -C "$dir" init -q -b main
+  # An identity outside the noreply domain: the `config` leg's whole job is to
+  # catch a repo that would author its next commit with a personal address.
+  git -C "$dir" config user.name "$an"
+  git -C "$dir" config user.email "$ae"
   git -C "$dir" add -A
   git -C "$dir" \
     -c "user.name=$an" -c "user.email=$ae" \
@@ -243,15 +324,21 @@ self_test() { # repo
   # the other four would pass a weaker assertion.
   local expected=(
     "tree:abs-home-path"
+    "tree:abs-users-path"
     "tree:email"
     "tree:secret"
+    "tree:sdd-task-id"
+    "tree:personal-string"
     "tree-path:private-path"
+    "tree-binary:secret"
     "history-meta:email"
     "history-meta:sdd-task-id"
     "history-meta:session-id"
     "history-path:private-path"
     "history-blob:abs-home-path"
     "history-blob:secret"
+    "history-blob-binary:secret"
+    "config:config-email"
   )
   local want
   for want in "${expected[@]}"; do
@@ -292,7 +379,23 @@ main() {
   FINDINGS="$WORK/findings.tsv"
   printf '%s' "$PATTERNS_B64" | base64 -d > "$WORK/patterns.tsv"
   [ -s "$WORK/patterns.tsv" ] || { echo "error: pattern set decoded empty" >&2; return 2; }
+  # Enforced, not merely documented: a row with an empty column reads back with
+  # its later columns shifted, which downgrades a detector without failing.
+  awk -F'\t' 'NF!=4 || $1=="" || $2=="" || $3=="" || $4=="" {exit 1}' "$WORK/patterns.tsv" \
+    || { echo "error: every patterns.tsv row must be 4 non-empty tab-separated columns ('-' = none)" >&2; return 2; }
   personal_strings > "$WORK/personal.txt"
+  if [ ! -s "$WORK/personal.txt" ]; then
+    cat >&2 <<'EOF'
+error: no personal strings could be derived — the personal-string leg cannot run.
+  Sources: `git config --global user.name`, `git config --global user.email`,
+  and the basename of $HOME (each must be at least 4 characters and outside the
+  noreply domain).
+  This is fatal, not skippable: a scan that silently drops a leg would report a
+  repository CLEAN on evidence it never looked at. Set a global git identity, or
+  run the gate from an account whose $HOME basename identifies it.
+EOF
+    return 2
+  fi
 
   if [ "$mode" = "self-test" ]; then
     self_test "$repo" || return 1
