@@ -74,7 +74,8 @@ fi
 # grammar are as load-bearing at runtime as the presets are.
 for pair in \
   "engine.md|engine.md" \
-  "references/signals-contract.md|references/signals-contract.md"
+  "references/signals-contract.md|references/signals-contract.md" \
+  "references/interview-conduct.md|references/interview-conduct.md"
 do
   src="$REPO_ROOT/core/${pair%%|*}"
   dst="$ADAPTER_DIR/${pair##*|}"

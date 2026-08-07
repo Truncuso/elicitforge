@@ -4,6 +4,10 @@ The actual question-at-a-time interview engine. Carries the techniques for
 sharp, non-meandering questioning. Emits structured outputs; never writes
 memory or docs itself — those are separate, caller-owned steps.
 
+Every run is additionally bound by the session conduct rules in
+`references/interview-conduct.md` (same directory root as this file in both
+the source tree and a vendored install).
+
 <what-to-do>
 
 Interview me relentlessly about every aspect of this plan until we reach a

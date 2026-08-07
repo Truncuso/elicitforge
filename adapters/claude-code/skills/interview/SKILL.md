@@ -84,9 +84,10 @@ than proceeding without it.
 
 1. Resolve the preset (or note that none was requested).
 2. Read the preset's frontmatter — `style`, `fidelity`, `framing`,
-   `output_contract` — and the engine's conduct rules from
-   `${CLAUDE_PLUGIN_ROOT}/engine.md`. The signal grammar the
-   `output_contract` names is at
+   `output_contract` — the engine at `${CLAUDE_PLUGIN_ROOT}/engine.md`, and
+   the session conduct rules at
+   `${CLAUDE_PLUGIN_ROOT}/references/interview-conduct.md`. The signal
+   grammar the `output_contract` names is at
    `${CLAUDE_PLUGIN_ROOT}/references/signals-contract.md`.
 3. Run the loop: one question at a time, each with a recommended answer and a
    confidence number, stopping on predictive confidence.
