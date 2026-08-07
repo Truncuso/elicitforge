@@ -1,6 +1,6 @@
 {
   "name": "interview",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Claude Code adapter plugin for the elicitforge interview system.",
   "author": {
     "name": "elicitforge"
