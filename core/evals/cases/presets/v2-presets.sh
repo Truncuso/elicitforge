@@ -64,8 +64,11 @@ assert_framing_has teach-back 'never tests and never scores the learner' \
 # alone, so grading vocabulary has no business in teach-back's declared contract
 # in any form — the file states the invariant with "never tests and never scores
 # the learner" and needs the word grade/grading/graded nowhere.
+# Match the words, not the stem: a bare *grad* also fires on "gradually" and
+# "upgrade", which carry no grading claim.
 case "$(preset_field "$PRESETS_DIR/teach-back.md" framing)" in
-  *grad*) fail "teach-back framing uses grading vocabulary — grading belongs to the quiz-back direction alone" ;;
+  *grade*|*grading*|*graded*|*grades*)
+    fail "teach-back framing uses grading vocabulary — grading belongs to the quiz-back direction alone" ;;
 esac
 
 # The stop rules stay engine-owned: each teachback preset NAMES the rule it
