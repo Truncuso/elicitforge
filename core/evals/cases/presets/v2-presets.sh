@@ -11,7 +11,9 @@
 # are distinguishable only through `framing`, which is the four-key schema's
 # only free-prose channel. The per-preset direction assertions below are what
 # make that distinction gated rather than merely intended — a teach-back preset
-# rewritten to grade the learner fails here.
+# rewritten to grade the learner fails here. They read the `framing` FIELD, not
+# the file: a file-scoped grep goes green on a preset whose declared contract
+# says the opposite, as long as the old sentence survives somewhere in the body.
 #
 # The shipped preset set is checked by set equality against the live
 # core/presets/ listing, so a seventh preset added without a case fails this
@@ -40,12 +42,31 @@ check_preset quiz-back teachback mid
 check_preset teach-back teachback mid
 
 # Direction prose: the only channel distinguishing the two `teachback` presets.
-assert_file_has_fixed "$PRESETS_DIR/wayfind-probe.md" 'one grilling ticket on a wayfind decision map' \
-  'wayfind-probe framing: one grilling ticket per probe'
-assert_file_has_fixed "$PRESETS_DIR/quiz-back.md" 'retrieval practice that grades the recall' \
-  'quiz-back framing: the grading quiz-back direction'
-assert_file_has_fixed "$PRESETS_DIR/teach-back.md" 'never tests and never scores the learner' \
-  'teach-back framing: the no-grading teach-back direction'
+# Asserted against the parsed `framing` value, through the checker's own reader.
+assert_framing_has() {
+  # assert_framing_has <preset-name> <fixed-substring> <label>
+  local name="$1" needle="$2" label="$3"
+  case "$(preset_field "$PRESETS_DIR/$name.md" framing)" in
+    *"$needle"*) ;;
+    *) fail "$name framing does not carry: $label" ;;
+  esac
+}
+
+assert_framing_has wayfind-probe 'one grilling ticket on a wayfind decision map' \
+  'one grilling ticket per probe'
+assert_framing_has quiz-back 'retrieval practice that grades the recall' \
+  'the grading quiz-back direction'
+assert_framing_has teach-back 'never tests and never scores the learner' \
+  'the no-grading teach-back direction'
+
+# Negative leg on the same field: a positive substring alone cannot detect
+# contradictory text added BESIDE it. Grading belongs to the quiz-back direction
+# alone, so grading vocabulary has no business in teach-back's declared contract
+# in any form — the file states the invariant with "never tests and never scores
+# the learner" and needs the word grade/grading/graded nowhere.
+case "$(preset_field "$PRESETS_DIR/teach-back.md" framing)" in
+  *grad*) fail "teach-back framing uses grading vocabulary — grading belongs to the quiz-back direction alone" ;;
+esac
 
 # The stop rules stay engine-owned: each teachback preset NAMES the rule it
 # stops on, and neither carries a stop_rule_override key (the schema checker
