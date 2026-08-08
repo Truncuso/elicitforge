@@ -11,6 +11,6 @@ Declarative preset. Selects the `teachback` playbook from the engine's closed
 style enum (../engine.md) and, within it, the **teach-back direction** — the
 user teaches the material back, the engine keeps a gap register, and the
 no-grading invariant binds throughout. Its stop rule is the engine's
-`Stop at a closed gap register`, which lives in the engine and not here.
+`### Stop at a closed gap register`, which lives in the engine and not here.
 Behavior is the engine's; this file only names the playbook, the direction
 inside it, fidelity, framing, and signal contract.
