@@ -4,9 +4,9 @@
 # readable preset whose frontmatter actually PARSES as YAML, for every shipped
 # preset.
 #
-# The expected name list is cross-checked against the REAL core/presets/*.md
-# listing, so adding, renaming, or dropping a preset fails this case instead of
-# silently drifting away from the shipped names.
+# The expected name list is lib.sh's single literal, cross-checked against the
+# REAL core/presets/*.md listing, so adding, renaming, or dropping a preset
+# fails this case instead of silently drifting away from the shipped names.
 #
 # The address itself is EXTRACTED from SKILL.md's own `## Resolution` block
 # rather than re-declared here: a drifted published address must fail this case,
@@ -36,12 +36,9 @@ fi
 # caller that invokes the front door by name.
 assert_file_has_fixed "$SKILL" 'name: interview' 'front door skill name'
 
-EXPECTED_PRESETS='capture-intake
-harden-facets
-spec-grill
-wayfind-probe
-quiz-back
-teach-back'
+# One editable copy of the shipped-preset list, in core/evals/cases/lib.sh —
+# already sourced above and shared with the core presets suite.
+EXPECTED_PRESETS="$(expected_preset_set)"
 
 actual="$(find "$REPO_ROOT/core/presets" -maxdepth 1 -type f -name '*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | sort)"
 assert_set_equals "shipped preset set under core/presets" "$EXPECTED_PRESETS" "$actual"

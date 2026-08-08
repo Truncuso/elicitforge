@@ -3,8 +3,8 @@
 #
 # Per preset: the schema checker accepts it, its style names a member of the
 # engine's closed enum (core/engine.md, not a list copied here), and its style
-# and fidelity carry the V2 assignments (wp-08 D4). `fidelity: mid` for all
-# three — each produces a durable record a caller is held to.
+# and fidelity carry the V2 assignments. `fidelity: mid` for all three — each
+# produces a durable record a caller is held to.
 #
 # quiz-back and teach-back both select the single `teachback` style: the enum
 # stays closed at five members and the two DIRECTIONS inside that one playbook
@@ -30,45 +30,10 @@ PRESETS_DIR="$CORE_DIR/presets"
 STYLES="$(engine_styles "$ENGINE")"
 [ -n "$STYLES" ] || { echo "    engine declares no styles" >&2; exit 1; }
 
-# Value of a top-level frontmatter key, read through the checker's own parser
-# (--print-fields) rather than a second mini-parser here: a suite that reads a
-# preset differently from the validator that gates it can go green over a file
-# neither one really accepts.
-preset_field() {
-  # preset_field <file> <key>
-  bash "$CHECKER" --print-fields "$1" | awk -F'\t' -v key="$2" '$1 == key { print $2; exit }'
-}
+# `preset_field` and `check_preset` are shared with the V1 suite and live in
+# cases/lib.sh; they read CHECKER, PRESETS_DIR and STYLES, all set above.
 
-check_preset() {
-  # check_preset <name> <expected-style> <expected-fidelity>
-  local name="$1" want_style="$2" want_fidelity="$3"
-  local file="$PRESETS_DIR/$name.md"
-
-  if [ ! -f "$file" ]; then
-    fail "$name: missing $file"
-    return
-  fi
-
-  bash "$CHECKER" "$file" >/dev/null || fail "$name: rejected by the preset schema checker"
-
-  local style fidelity framing contract
-  style="$(preset_field "$file" style)"
-  fidelity="$(preset_field "$file" fidelity)"
-  framing="$(preset_field "$file" framing)"
-  contract="$(preset_field "$file" output_contract)"
-
-  printf '%s\n' "$STYLES" | grep -qxF -- "$style" \
-    || fail "$name: style '$style' is not a member of the engine's closed enum"
-  [ "$style" = "$want_style" ] || fail "$name: style is '$style', expected '$want_style'"
-  [ "$fidelity" = "$want_fidelity" ] || fail "$name: fidelity is '$fidelity', expected '$want_fidelity'"
-
-  # Framing is prose carrying purpose, never an enum: require real prose, not a
-  # one-word placeholder.
-  [ "${#framing}" -ge 60 ] || fail "$name: framing is not prose carrying purpose (${#framing} chars)"
-  [ "${#contract}" -ge 60 ] || fail "$name: output_contract does not state a real signal contract (${#contract} chars)"
-}
-
-# V2 assignments (wp-08 D4): wayfind-probe=socratic/mid, quiz-back=teachback/mid,
+# V2 assignments: wayfind-probe=socratic/mid, quiz-back=teachback/mid,
 # teach-back=teachback/mid.
 check_preset wayfind-probe socratic mid
 check_preset quiz-back teachback mid
@@ -97,9 +62,11 @@ for preset in wayfind-probe quiz-back teach-back; do
   done
 done
 
-# The shipped set, checked against the live listing rather than assumed.
+# The shipped set, checked against the live listing rather than assumed. The
+# expected side is lib.sh's single literal, shared with the adapter's
+# preset-resolution case, so a new preset is one edit rather than three.
 assert_set_equals "v2 preset set under core/presets" \
-  "$(printf '%s\n' capture-intake harden-facets spec-grill wayfind-probe quiz-back teach-back)" \
+  "$(expected_preset_set)" \
   "$(find "$PRESETS_DIR" -maxdepth 1 -type f -name '*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | sort)"
 
 case_exit
