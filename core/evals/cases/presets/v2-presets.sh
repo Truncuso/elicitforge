@@ -85,7 +85,7 @@ assert_file_has_fixed "$PRESETS_DIR/teach-back.md" 'never tests and never scores
 # The stop rules stay engine-owned: each teachback preset NAMES the rule it
 # stops on, and neither carries a stop_rule_override key (the schema checker
 # rejects one, and this pins the prose reference that replaces it).
-assert_file_has_fixed "$PRESETS_DIR/quiz-back.md" 'Stop at predictive' \
+assert_file_has_fixed "$PRESETS_DIR/quiz-back.md" '### Stop at a settled recall profile' \
   'quiz-back names the engine stop rule it uses'
 assert_file_has_fixed "$PRESETS_DIR/teach-back.md" 'Stop at a closed gap register' \
   'teach-back names the engine stop rule it uses'

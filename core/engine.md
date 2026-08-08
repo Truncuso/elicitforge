@@ -83,6 +83,21 @@ convey, carrying no score and no verdict on the user. If new gaps keep appearing
 round after round, that is information about the material, not a reason to
 grind: stop and say which part of it is not explainable in its current shape.
 
+### Stop at a settled recall profile
+
+When you are the one testing and the material is already settled, the bar is
+what you can predict about the user's recall. You are done when you can answer
+yes to:
+*can I predict the user's answer to the next three questions I would ask?*
+At that point the recall profile is settled — you know which parts the user
+holds and which parts they do not — so stop and report the graded record: what
+was asked, how each answer scored against the material, and every gap the pass
+exposed. An answer you could not predict is the measurement this direction
+exists to produce, never a reason to stop early: keep going while new ones keep
+appearing, and stop anyway once every part of the material has been probed at
+least once, reporting what is still unrecalled rather than grinding for a
+better score.
+
 ## During the session
 
 ### Challenge against the glossary
@@ -193,8 +208,8 @@ material and you **grade** the recall: each answer is scored against the
 material, and every gap is named and reported. Withhold your recommended answer
 until the user has committed to theirs — a recalled answer that was shown first
 is not retrieval. Prefer questions that force reconstruction over recognition.
-Stop rule: `### Stop at predictive confidence` — stop when you can predict the
-user's answer to the next three questions you would ask.
+Stop rule: `### Stop at a settled recall profile` — stop when you can predict
+the user's answer to the next three questions you would ask.
 
 **teach-back direction** — health-literacy teach-back. The user explains the
 material back in their own words; you ask them to teach it, not to recite it

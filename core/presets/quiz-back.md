@@ -10,6 +10,7 @@ output_contract: Emits RESOLVED_TERM (with optional RELATED) when a recall gap f
 Declarative preset. Selects the `teachback` playbook from the engine's closed
 style enum (../engine.md) and, within it, the **quiz-back direction** — the
 engine tests the user on settled material and grades the recall, naming and
-reporting every gap. Its stop rule is the engine's `Stop at predictive
-confidence`. Behavior is the engine's; this file only names the playbook, the
-direction inside it, fidelity, framing, and signal contract.
+reporting every gap. Its stop rule is the engine's
+`### Stop at a settled recall profile`, which lives in the engine and not here.
+Behavior is the engine's; this file only names the playbook, the direction
+inside it, fidelity, framing, and signal contract.
