@@ -12,3 +12,7 @@ style enum (../engine.md) — one question at a time with a recommended answer,
 dependencies resolved before dependents, concrete scenarios used to stress-test
 stated boundaries, and the predictive-confidence stop. Behavior is the engine's;
 this file only names the playbook, fidelity, framing, and signal contract.
+
+Ladder up-chain once per stated constraint: ask *why does that matter* for each
+one, so the hardened facet records the reason behind the boundary and not only
+the boundary itself.

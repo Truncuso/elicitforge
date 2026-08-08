@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # The front door's documented address — ${CLAUDE_PLUGIN_ROOT}/presets/<name>.md —
 # must resolve, through the adapter's own vendored presets/ directory, to a
-# readable preset whose frontmatter actually PARSES as YAML, for every v1 preset.
+# readable preset whose frontmatter actually PARSES as YAML, for every shipped
+# preset.
 #
 # The expected name list is cross-checked against the REAL core/presets/*.md
 # listing, so adding, renaming, or dropping a preset fails this case instead of
-# silently drifting away from the three v1 names.
+# silently drifting away from the shipped names.
 #
 # The address itself is EXTRACTED from SKILL.md's own `## Resolution` block
 # rather than re-declared here: a drifted published address must fail this case,
@@ -35,12 +36,15 @@ fi
 # caller that invokes the front door by name.
 assert_file_has_fixed "$SKILL" 'name: interview' 'front door skill name'
 
-EXPECTED_V1='capture-intake
+EXPECTED_PRESETS='capture-intake
 harden-facets
-spec-grill'
+spec-grill
+wayfind-probe
+quiz-back
+teach-back'
 
 actual="$(find "$REPO_ROOT/core/presets" -maxdepth 1 -type f -name '*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | sort)"
-assert_set_equals "v1 preset set under core/presets" "$EXPECTED_V1" "$actual"
+assert_set_equals "shipped preset set under core/presets" "$EXPECTED_PRESETS" "$actual"
 
 # Resolve each preset the way the host does: through the exported plugin root,
 # substituting the bare name into the address string extracted above.
@@ -60,7 +64,7 @@ while IFS= read -r name; do
       "$target" 2>/dev/null \
       || { echo "    frontmatter does not parse as YAML: ${name}.md" >&2; exit 1; }
   ) || fail "preset '$name' did not resolve to a readable file with parseable frontmatter"
-done <<< "$EXPECTED_V1"
+done <<< "$EXPECTED_PRESETS"
 
 # The resolution mechanism is a REAL directory at the plugin root, not a symlink
 # out to core/: the host installs this directory alone, so a link leaving it
