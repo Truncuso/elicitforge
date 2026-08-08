@@ -16,6 +16,10 @@ assert_file_has_fixed "$ENGINE" 'CONFIDENCE: ~35% — missing:' 'confidence-numb
 assert_file_has_fixed "$ENGINE" "If you didn't have to justify this to anyone, what would you actually want?" 'want-vs-should-want probe'
 # 3. predictive-confidence stopping rule
 assert_file_has_fixed "$ENGINE" "can I predict the user's reaction to the next three questions" 'predictive-confidence stop'
+# 3b. up-chain laddering — behaviour a preset selects BY NAME, so it has to live
+# here. A preset that carries the technique in its own body instead is a
+# declarative file describing behaviour, which is the layering this pins shut.
+assert_file_has_fixed "$ENGINE" '### Ladder up-chain from a stated constraint' 'up-chain laddering technique'
 # 4. glossary challenge
 assert_file_has_fixed "$ENGINE" "Your glossary defines 'cancellation'" 'glossary challenge'
 # 5. concrete-scenario stress-test

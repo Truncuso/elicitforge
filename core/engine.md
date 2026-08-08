@@ -57,6 +57,17 @@ approach"), "I should probably…". When you hear one, probe:
 
 That single question often does more work than the previous five.
 
+### Ladder up-chain from a stated constraint
+
+When the user states a constraint — a boundary, a limit, a must-not — ask
+*why does that matter* once for each one before moving on. The answer is the
+reason the constraint exists, and it is what a later reader needs to tell a
+real boundary from an inherited habit. Record the reason beside the constraint,
+never instead of it: laddering that replaces the boundary with its rationale
+loses the thing being constrained. One rung per constraint is the default —
+keep climbing only while each answer still names a different reason. Presets
+that need this select it by name; it is not part of every socratic run.
+
 ### Stop at predictive confidence
 
 You are done grilling when you can answer yes to:

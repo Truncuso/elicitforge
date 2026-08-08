@@ -10,9 +10,10 @@ output_contract: Emits RESOLVED_TERM (with optional RELATED) when a facet's term
 Declarative preset. Selects the `socratic` playbook from the engine's closed
 style enum (../engine.md) — one question at a time with a recommended answer,
 dependencies resolved before dependents, concrete scenarios used to stress-test
-stated boundaries, and the predictive-confidence stop. Behavior is the engine's;
-this file only names the playbook, fidelity, framing, and signal contract.
-
-Ladder up-chain once per stated constraint: ask *why does that matter* for each
-one, so the hardened facet records the reason behind the boundary and not only
-the boundary itself.
+stated boundaries, and the predictive-confidence stop. Inside that playbook it
+selects the engine's `### Ladder up-chain from a stated constraint` technique,
+which lives in the engine and not here: one *why does that matter* per stated
+constraint, so a hardened facet records the reason behind a boundary and not
+only the boundary itself. Behavior is the engine's; this file only names the
+playbook, the technique it selects inside it, fidelity, framing, and signal
+contract.
