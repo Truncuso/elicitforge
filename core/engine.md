@@ -69,6 +69,20 @@ chain's own human gates already cover this.) If you have gone several rounds and
 cannot predict, that is information about the plan, not a reason to grind: stop
 and tell the user something foundational is missing.
 
+### Stop at a closed gap register
+
+When the user is the one explaining, your own confidence is not the bar — the
+register is. You are done when you can answer yes to:
+*did a full round surface no new gap?*
+A full round means every part of the settled material has been explained back at
+least once since the last gap was recorded. When a round closes without adding
+an entry, the register is closed — stop and reflect it back: the gaps that
+surfaced, what the user's own words settled each one to, and what is still open.
+Reflect, never rate: the register is a list of things the material failed to
+convey, carrying no score and no verdict on the user. If new gaps keep appearing
+round after round, that is information about the material, not a reason to
+grind: stop and say which part of it is not explainable in its current shape.
+
 ## During the session
 
 ### Challenge against the glossary
@@ -167,13 +181,33 @@ as no branch is entirely unexplored and the remaining uncertainty is confined to
 branches the user has explicitly deprioritized. Emit `HANDOFF_SUGGESTION:
 deferred` for every branch left shallow, so nothing skipped is silently lost.
 
-### teachback (stub)
+### teachback
 
-Named member of the enum; full playbook body deferred to wp-08, which owns it.
-Blocked on OQ4 (stop-rule semantics) — a teachback style inverts who is being
-tested, so its stopping rule cannot be authored until OQ4 fixes what "done"
-means for it. Selecting `teachback` before wp-08 lands is an error, not a
-silent fallback to `socratic`.
+Same loop, inverted subject. Everywhere else you are testing the plan; here the
+material is already settled and what is under examination is the user's grasp of
+it. Two named directions share this one playbook — choose one at the start of
+the session and say which, because they stop on different rules.
+
+**quiz-back direction** — retrieval practice. You test the user on settled
+material and you **grade** the recall: each answer is scored against the
+material, and every gap is named and reported. Withhold your recommended answer
+until the user has committed to theirs — a recalled answer that was shown first
+is not retrieval. Prefer questions that force reconstruction over recognition.
+Stop rule: `### Stop at predictive confidence` — stop when you can predict the
+user's answer to the next three questions you would ask.
+
+**teach-back direction** — health-literacy teach-back. The user explains the
+material back in their own words; you ask them to teach it, not to recite it
+("walk me through how you would explain this to the next person"). Keep a gap
+register: one entry per place the explanation diverges from the material.
+Reflect each entry back as something the explanation did not carry, re-explain
+that part, and ask again. Stop rule: `### Stop at a closed gap register`.
+
+The no-grading invariant binds the teach-back direction: it never tests and
+never scores the learner, and a register entry is a defect in the explanation,
+never a mark against the person. Grading belongs to the quiz-back direction
+alone. Both directions keep the one-question-per-turn shape — never batch,
+never stack a follow-up onto the same turn.
 
 ### divergent (stub)
 
