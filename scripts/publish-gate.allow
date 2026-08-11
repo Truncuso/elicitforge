@@ -17,3 +17,10 @@ adapters/claude-code/engine.md	sdd-task-id	*	Vendored, byte-identical copy of co
 core/evals/cases/presets/v1-presets.sh	sdd-task-id	*	One comment attributing the V1 style/fidelity assignments to the work item that decided them — provenance for a hardcoded table, an opaque ordinal with no planning content
 commit:b17d70492fd3	sdd-task-id	*	Commit message frozen in the published v1.0.0 history: it credits the review pass that found the dangling-symlink defect. Pinned to this one commit; rewriting it would require force-pushing a tag that is already observable, which is a worse outcome than an opaque ordinal in a log
 scripts/publish-gate.sh	sdd-task-id	blob:d47bd5401154	The v1.0.0 blob of this script carried a header line naming a private planning ticket. The working tree no longer does — the line was rewritten — but the published blob is immutable. Pinned to that blob ONLY, so the same string reappearing in the working copy still fails the gate
+commit:17eb3396d61f	sdd-task-id	*	Unreleased-lap commit message names its own task ordinal — provenance only, opaque, no planning content; pinned to this one commit
+commit:167cf629b4a0	sdd-task-id	*	Unreleased-lap commit message names its task and package ordinals — provenance only, opaque, no planning content; pinned to this one commit
+commit:d397ea64e429	sdd-task-id	*	Unreleased-lap commit message names its own task ordinal — provenance only, opaque; pinned to this one commit
+commit:d397ea64e429	secret	*	FALSE POSITIVE: the commit scope (a skill slug starting with two letters and an ordinal) matches the API-key regex interiorly; no credential involved
+commit:7ff3d498dd61	sdd-task-id	*	Inherited package marker frozen in already-published v1.0.3 history (the current marketplace pin); rewriting would force-push an observable tag
+core/evals/cases/presets/v2-presets.sh	sdd-task-id	blob:7ea0c82b85c1	Historical blob carried tracker comments; working tree rewritten this round — pinned to the immutable blob only
+core/evals/cases/presets/v2-presets.sh	sdd-task-id	blob:5e03ff653193	Historical blob carried tracker comments; working tree rewritten this round — pinned to the immutable blob only
