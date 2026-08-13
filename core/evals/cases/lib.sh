@@ -58,7 +58,7 @@ contract_signal_types() {
 # the single editable copy of the list: adding a preset means editing it here,
 # and every suite comparing against it stays red until it does.
 expected_preset_set() {
-  printf '%s\n' capture-intake harden-facets spec-grill wayfind-probe quiz-back teach-back
+  printf '%s\n' capture-intake harden-facets spec-grill wayfind-probe quiz-back teach-back brainstorm
 }
 
 # --- shared preset readers ---------------------------------------------------

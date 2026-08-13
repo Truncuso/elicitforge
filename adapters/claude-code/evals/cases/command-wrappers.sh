@@ -24,7 +24,8 @@ VENDORED_PRESETS="$ADAPTER_DIR/presets"
 
 # Wrappers that bind one fixed preset.
 PRESET_WRAPPERS='quiz-back
-teach-back'
+teach-back
+brainstorm'
 # Wrappers that deliberately bind none.
 OPEN_WRAPPERS='grill
 interview'

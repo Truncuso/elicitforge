@@ -109,6 +109,21 @@ appearing, and stop anyway once every part of the material has been probed at
 least once, reporting what is still unrecalled rather than grinding for a
 better score.
 
+### Stop at a saturated option space
+
+When the job is to widen the field before narrowing it, neither your confidence
+nor the user's recall is the bar — the option space is. You are done generating
+when you can answer yes to:
+*did a full round add no option that changes the shape of the field?*
+A full round means every axis of variation named so far has been pushed at least
+once since the last genuinely new option appeared, and an option that only
+restates one already on the list is not a new one. When a round closes without
+adding one, the space is saturated — stop generating and say so explicitly
+before narrowing anything. If genuinely new options keep arriving round after
+round, that is information about the framing, not a reason to grind: name the
+axis that keeps producing them and tell the user the field is wider than the
+question assumed.
+
 ## During the session
 
 ### Challenge against the glossary
@@ -235,8 +250,36 @@ never a mark against the person. Grading belongs to the quiz-back direction
 alone. Both directions keep the one-question-per-turn shape — never batch,
 never stack a follow-up onto the same turn.
 
-### divergent (stub)
+### divergent
 
-Named member of the enum; full playbook body deferred to wp-12, which owns it.
-No consumer exists until then. Selecting `divergent` before wp-12 lands is an
-error, not a silent fallback to `socratic`.
+Same loop, widened before it is narrowed. Everywhere else each question drives
+toward one resolved answer; here a question is a generator first and a decision
+second, and the session runs in two named phases with an explicit switch
+between them. Both phases keep the one-question-per-turn shape.
+
+**Divergence phase** — quantity before quality. Ask for options, not decisions,
+and treat the first answer as one sample rather than as the answer: *"what else
+could this be?"* is the default follow-up. Hold judgment while the phase is
+open — never rank, cost, or reject an option here, because an option killed
+early takes the adjacent ones with it. Your recommended answer becomes a
+recommended *additional* option, offered to widen the field rather than to close
+it, and concrete scenarios are used to surface variants the user has not named
+rather than to break the ones they have. Name the axis a batch of options varies
+along whenever one becomes visible; those axes are what the next phase sorts on.
+Stop rule: `### Stop at a saturated option space`.
+
+**Convergence phase** — announce the switch, then narrow. State plainly that
+generation is closed, group the options under the axes named during divergence,
+and walk the groups one question at a time under the ordinary socratic conduct:
+recommended answer, dependencies before dependents. Judgment belongs here and
+only here, and the criteria being selected on are themselves elicited rather
+than assumed. An option that loses is recorded as rejected *with its reason*,
+never deleted — the discarded field is what makes the surviving choice legible
+to a later reader. The phase ends when every option is either chosen or rejected
+with a stated reason, and what it leaves behind is a design record: the framing
+that opened the session, the axes, the options under each, the choices, and why
+the rest lost.
+
+Convergence is a phase of this playbook, not a style of its own: nothing selects
+it separately, and a session that stops after divergence has produced a list,
+not a design.
