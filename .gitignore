@@ -8,6 +8,11 @@
 tmp/
 *.log
 
+# private planning artifacts (not for public repo) — matches cogwright's
+# packages/goalforge convention; see scripts/publish-gate.sh PRIVATE_PATH_RE,
+# which independently blocks any tracked plans/ path regardless of this entry
+plans/
+
 # Dependencies / build output
 node_modules/
 dist/
