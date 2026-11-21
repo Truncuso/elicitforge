@@ -18,7 +18,7 @@ environment variables — adapters live outside it.
 
 ## Status
 
-Pre-1.0, semver-tagged from first release.
+Stable (v1.2.0), semver-tagged from first release.
 
 ## License
 
